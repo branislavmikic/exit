@@ -2,7 +2,7 @@
 
 
 # Versions
-FROM node:20-alpine AS node_upstream
+FROM node:18-alpine AS node_upstream
 
 
 # Base stage for dev and build
@@ -14,7 +14,7 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /srv/app
 
-RUN corepack enable && \
+ RUN corepack enable && \
 	corepack prepare --activate pnpm@latest && \
 	pnpm config -g set store-dir /.pnpm-store
 
@@ -31,48 +31,47 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME localhost
 
-CMD ["sh", "-c", "pnpm install; pnpm dev"]
+CMD ["sh", "-c", "yarn install; yarn dev"]
 
 
 FROM base AS builder
 
-COPY --link pnpm-lock.yaml ./
-RUN pnpm fetch --prod
+COPY --link package.json ./
+RUN yarn install
 
 COPY --link . .
 
-RUN	pnpm install --frozen-lockfile --offline --prod && \
-	pnpm run build
+
+# RUN	pnpm install --frozen-lockfile --offline --prod && \
+# 	pnpm run build
 
 
 # Production image, copy all the files and run next
 FROM node_upstream AS prod
-
 WORKDIR /srv/app
 
 ENV NODE_ENV production
-# Delete the following line in case you want to enable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
-
 RUN addgroup --system --gid 1001 nodejs; \
 	adduser --system --uid 1001 nextjs
 
-COPY --from=builder --link /srv/app/public ./public
+USER nextjs
+
+COPY --from=builder --link --chown=1001:1001 /srv/app/. ./
 
 # Set the correct permission for prerender cache
-RUN mkdir .next; \
-	chown nextjs:nodejs .next
+#RUN mkdir .next; \
+#	chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --link --chown=1001:1001 /srv/app/.next/standalone ./
-COPY --from=builder --link --chown=1001:1001 /srv/app/.next/static ./.next/static
-
-USER nextjs
+#COPY --from=builder --link --chown=1001:1001 /srv/app/.next/standalone ./
+#COPY --from=builder --chown=nextjs:nextjs /srv/app/.output ./
+#COPY --from=builder --chown=nextjs:nextjs /srv/app/.output /srv/app/.output
 
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+#RUN yarn dev
 
-CMD ["node", "server.js"]
+CMD [ "yarn", "dev" ]
