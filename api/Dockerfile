@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	acl \
 	file \
 	gettext \
+	libnss3-tools \
 	git \
 	&& rm -rf /var/lib/apt/lists/*
 
