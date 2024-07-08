@@ -46,8 +46,7 @@ async function create(item: Reservation) {
   // }
 
   navigateTo({
-    name: "reservations-id-edit",
-    params: { id: getIdFromIri(created?.value?.["@id"]) },
+    name: "reservations",
   });
 }
 
