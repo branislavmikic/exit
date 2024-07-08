@@ -7,13 +7,14 @@ api_platform:
     formats:
         jsonld: ['application/ld+json']
         json: ['application/json']
-
+        multipart: ['multipart/form-data']
     docs_formats:
         jsonld: ['application/ld+json']
         jsonopenapi: ['application/vnd.openapi+json']
         html: ['text/html']
     # Good defaults for REST APIs
     defaults:
+        pagination_items_per_page: 3000 # Default value
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
@@ -23,3 +24,5 @@ api_platform:
     # change this to true if you use controllers
     use_symfony_listeners: false
     keep_legacy_inflector: false
+    mapping:
+        paths: ['%kernel.project_dir%/src/Model', '%kernel.project_dir%/src/Entity']
